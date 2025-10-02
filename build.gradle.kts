@@ -18,3 +18,24 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
+sourceSets {
+    create("processor") {
+        java.setSrcDirs(listOf("src/main/java"))
+        resources.setSrcDirs(listOf("src/main/resources"))
+    }
+}
+
+tasks.named<JavaCompile>("compileProcessorJava").configure {
+    source = fileTree("src/main/java") {
+        include("org/example/generator/GeneratableProcessor.java")
+    }
+}
+
+tasks.named<JavaCompile>("compileJava").configure {
+    dependsOn("compileProcessorJava", "processProcessorResources")
+    options.annotationProcessorPath = files(
+        sourceSets.getByName("processor").output,
+        configurations.getByName("processorCompileClasspath")
+    )
+}
